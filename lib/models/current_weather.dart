@@ -23,7 +23,7 @@ class CurrentWeather{
 
   set description(String value){
     if(value.trim().isEmpty){
-      throw Exception('City cannot be empty');
+      throw Exception('Description cannot be empty');
     }
     _description = value;
   }
@@ -58,11 +58,6 @@ class CurrentWeather{
     if (value.day != currentTime.day || value.month != currentTime.month || value.year != currentTime.year){
       throw Exception('Sunrise must be on the same day as current time');
     }
-
-    if(value.isAfter(_sunset)){
-      throw Exception('Sunrise cannot be after sunset');
-    }
-
     _sunrise = value;
   }
 
@@ -72,13 +67,38 @@ class CurrentWeather{
 
   set sunset (DateTime value){
     if (value.day != currentTime.day || value.month != currentTime.month || value.year != currentTime.year){
-      throw Exception('Sunrise must be on the same day as current time');
+      throw Exception('Sunset must be on the same day as current time');
     }
 
-    if(value.isAfter(_sunrise)){
-      throw Exception('Sunset cannot be after sunrise');
+    if(value.isBefore(_sunrise)){
+      throw Exception('Sunset cannot be before sunrise');
     }
-
     _sunset = value;
+  }
+
+  CurrentWeather({required String city, required String description, required double currentTemp, required DateTime currentTime, required DateTime sunrise, required DateTime sunset}) {
+    this.city = city;
+    this.description = description;
+    this.currentTemp = currentTemp;
+    this.currentTime = currentTime;
+    this.sunrise = sunrise;
+    this.sunset = sunset;
+  }
+
+  factory CurrentWeather.fromOpenWeatherData (dynamic data){
+    String city = data['name'];
+    String description = data['weather'][0]['description'];
+    double currentTemp = data['main']['temp'];
+    DateTime currentTime = DateTime.fromMillisecondsSinceEpoch((data['dt'] * 1000).toInt());
+    DateTime sunrise = DateTime.fromMillisecondsSinceEpoch((data['sys']['sunrise'] * 1000).toInt());
+    DateTime sunset = DateTime.fromMillisecondsSinceEpoch((data['sys']['sunset'] * 1000).toInt());
+
+
+    return CurrentWeather(city: city, description: description, currentTemp: currentTemp, currentTime: currentTime,sunrise: sunrise, sunset: sunset);
+  }
+
+  @override
+  String toString(){
+    return 'City: $city, Description: $description, Current Temperature: $currentTemp, Current Time: $currentTime, Sunrise: $sunrise, Sunset: $sunset';
   }
 }
